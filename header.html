@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <style>
+
+        .logo {
+      height: 60px; /* גובה הלוגו, אפשר לשנות לפי הצורך */
+      margin-right: 20px; /* רווח בין הלוגו לשאר התוכן */
+    }
+        header {background:#333; color:#B6A24B; padding:20px;  
+          display: flex;              /* הופך ל-flexbox */
+          align-items: center;        /* יישור אנכי */
+          justify-content: space-between; /* הלוגו בצד שמאל, התפריט בצד ימין */
+        
+        }
+        nav a {color:#B6A24B; margin:0 10px; text-decoration:none;}
+    section {padding:40px 20px;}
+    h1,h2 {margin-bottom:20px;}
+    .gallery {display:flex; flex-wrap:wrap; gap:10px;}
+    .gallery img {width:30%; border-radius:8px;}
+    .tabs button {margin:5px; padding:10px 20px; cursor:pointer;}
+    .hidden {display:none;}
+    form {display:flex; flex-direction:column; gap:10px; max-width:400px;}
+    input, select, textarea {padding:10px; border:1px solid #ccc; border-radius:4px;}
+    button {padding:10px; background:#333; color:#fff; border:none; cursor:pointer;}
+    footer {background:#f0f0f0; text-align:center; padding:20px; margin-top:40px;}
+    </style>
+</head>
+<body>
+    
+
+  <header>
+     <img src="pic/small logo.jpeg" alt="לוגו" class="logo" />
+    <h1> א.ש אלומיניום חוץ – מביאים סטנדרט חדש למקצוע </h1>
+    <nav>
+      <a href="pergolas.html">פרגולות</a>
+      <a href="gates.html">שערים</a>
+      <a href="fences.html">גדרות</a>
+      <a href="wallcover.html">חיפויי קיר </a>
+      <a href="admin.html" style="color:#fff;background:#B6A24B;padding:6px 14px;border-radius:6px;margin-right:16px;">אדמין</a>
+    </nav>
+  </header>
+</body>
+</html>
