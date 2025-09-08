@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>חיפויי קיר</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin:0; padding:20px;
+      background:#f7f7f7;
+      background-image: url('pic/logo.jpeg');
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: cover;
+      background-attachment: fixed;
+      background-color: #f5f5f5;
+    }
+    h1 {text-align:center; margin-bottom:20px;}
+    p {text-align:center; margin-bottom:40px;}
+    .gallery {display:flex; flex-wrap:wrap; gap:30px; justify-content:center;}
+    .item {
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+      padding:10px; border-radius:12px; width:380px; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.13);
+    }
+    .item img {width:340px; height:220px; object-fit:cover; border-radius:10px;}
+    .item .number {font-weight:bold; margin-bottom:5px; color:#555;}
+    .item .caption {margin-top:8px; font-weight:500; color:#333;}
+    #img-modal {
+      display:none;
+      position:fixed;
+      top:0; left:0; width:100vw; height:100vh;
+      background:rgba(0,0,0,0.85); z-index:9999;
+      align-items:center; justify-content:center;
+    }
+    #modal-img {
+      max-width:90vw; max-height:90vh; border-radius:12px; box-shadow:0 4px 32px #000;
+    }
+  </style>
+</head>
+<body>
+  <div id="header-placeholder"></div>
+  <script>
+    fetch('header.html')
+      .then(response => response.text())
+      .then(data => {
+        document.getElementById('header-placeholder').innerHTML = data;
+      });
+  </script>
+  <h1>חיפויי קיר</h1>
+  <p id="main-text"></p>
+  <div class="gallery" id="gallery"></div>
+  <div id="img-modal">
+    <img id="modal-img" src="">
+  </div>
+  <script>
+    fetch('/api/page/wallcover')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('main-text').innerText = data.mainText || '';
+        const gallery = document.getElementById('gallery');
+        gallery.innerHTML = '';
+        if (data.gallery && data.gallery.length) {
+          data.gallery.forEach((img, i) => {
+            const div = document.createElement('div');
+            div.className = 'item';
+            div.innerHTML = `
+              <div class="number">${i+1}</div>
+              <img src="${img.url}" alt="חיפוי ${i+1}">
+              <div class="caption">${img.caption}</div>
+            `;
+            gallery.appendChild(div);
+          });
+          document.querySelectorAll('.gallery .item img').forEach(img => {
+            img.style.cursor = 'pointer';
+            img.onclick = function() {
+              document.getElementById('modal-img').src = this.src;
+              document.getElementById('img-modal').style.display = 'flex';
+            };
+          });
+          document.getElementById('img-modal').onclick = function() {
+            this.style.display = 'none';
+            document.getElementById('modal-img').src = '';
+          };
+        } else {
+          gallery.innerHTML = '<div style="color:#888;text-align:center;width:100%;">אין תמונות בגלריה</div>';
+        }
+      });
+  </script>
+</body>
+</html>

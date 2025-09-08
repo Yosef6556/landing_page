@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>אזור מנהל - עריכת תוכן</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .admin-card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      padding: 32px 24px;
+      width: 100%;
+      max-width: 650px;
+      margin: 40px 0;
+    }
+    h2, h3 {
+      color: #B6A24B;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin: 16px 0 8px 0;
+      font-weight: 500;
+      color: #333;
+      text-align: right;
+    }
+    select, textarea, input[type="file"], button {
+      width: 100%;
+      margin-bottom: 16px;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    button {
+      background: #B6A24B;
+      color: #fff;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #8d7a2c;
+    }
+    .logout-btn {
+      background: #333;
+      margin-top: 8px;
+    }
+    .hidden { display: none; }
+    .success { color: green; margin-bottom: 10px; }
+    .error { color: red; margin-bottom: 10px; }
+    .gallery-edit {margin-top:20px;}
+    .gallery-edit label {margin-top:0;}
+    .gallery-row {display:flex; gap:10px; align-items:center;}
+    .gallery-row input[type="text"] {flex:2;}
+    .gallery-row input[type="file"] {flex:1;}
+    .gallery-row img {max-width:60px; max-height:40px; border-radius:4px;}
+    .gallery-row {margin-bottom:10px;}
+    /* --- פניות צור קשר --- */
+    .contacts-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      background: #fafafa;
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 0.97rem;
+    }
+    .contacts-table th, .contacts-table td {
+      border-bottom: 1px solid #e0e0e0;
+      padding: 10px 6px;
+      text-align: right;
+    }
+    .contacts-table th {
+      background: #f3eecb;
+      color: #8d7a2c;
+      font-weight: bold;
+    }
+    .contacts-table tr:last-child td {
+      border-bottom: none;
+    }
+    .delete-btn {
+      background: #e74c3c;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 0.95em;
+      transition: background 0.2s;
+    }
+    .delete-btn:hover {
+      background: #b93222;
+    }
+    .no-contacts {
+      text-align: center;
+      color: #888;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-card">
+    <h2>כניסת מנהל</h2>
+    <div id="login-section">
+      <input type="password" id="admin-password" placeholder="סיסמת מנהל">
+      <button id="login-btn">כניסה</button>
+      <div id="login-msg" class="error"></div>
+    </div>
+    <div id="edit-section" class="hidden">
+      <label for="page-select">בחר דף לעריכה:</label>
+      <select id="page-select">
+        <option value="index">דף הבית</option>
+        <option value="pergolas">פרגולות</option>
+        <option value="gates">שערים</option>
+        <option value="fences">גדרות</option>
+        <option value="wallcover">חיפויי קיר</option>
+      </select>
+      <label for="main-text-input">טקסט ראשי:</label>
+      <textarea id="main-text-input" rows="5"></textarea>
+      <div class="gallery-edit">
+        <h3>עריכת גלריה</h3>
+        <div style="color:#b93222;font-size:0.98em;margin-bottom:8px;">
+          ניתן להוסיף כמה תמונות שתרצה, אך הגודל הכולל של כל התמונות בגלריה מוגבל ל-4MB.
+        </div>
+        <button id="add-gallery-img-btn" type="button" style="margin-bottom:18px;background:#8d7a2c;">הוסף תמונה</button>
+        <div id="gallery-size-info" style="color:#888;font-size:0.95em;margin-bottom:8px;"></div>
+        <div id="gallery-fields"></div>
+      </div>
+      <button id="save-btn">שמור שינויים</button>
+      <button class="logout-btn" id="logout-btn">יציאה</button>
+      <div id="save-msg"></div>
+      <hr>
+      <h3>פניות צור קשר</h3>
+      <div id="contacts-list"></div>
+    </div>
+  </div>
+  <script>
+    const ADMIN_PASSWORD = '123'; // שנה לפי הצורך
+
+    // Login logic
+    document.getElementById('login-btn').onclick = function() {
+      doAdminLogin();
+    };
+    document.getElementById('admin-password').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        doAdminLogin();
+      }
+    });
+
+    function doAdminLogin() {
+      const pwd = document.getElementById('admin-password').value;
+      if (pwd === ADMIN_PASSWORD) {
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('edit-section').classList.remove('hidden');
+        loadPageData(document.getElementById('page-select').value);
+        loadContacts();
+      } else {
+        document.getElementById('login-msg').innerText = 'סיסמה שגויה';
+      }
+    }
+    document.getElementById('logout-btn').onclick = function() {
+      document.getElementById('edit-section').classList.add('hidden');
+      document.getElementById('login-section').classList.remove('hidden');
+      document.getElementById('admin-password').value = '';
+      document.getElementById('login-msg').innerText = '';
+    };
+
+    // גלריה - פונקציות עריכה/הוספה/מחיקה
+    let galleryArr = [];
+
+    function renderGalleryFields() {
+      const galleryFields = document.getElementById('gallery-fields');
+      galleryFields.innerHTML = '';
+      galleryArr.forEach((img, idx) => {
+        const row = document.createElement('div');
+        row.className = 'gallery-row';
+        row.innerHTML = `
+          <label>תמונה ${idx+1}:</label>
+          <input type="text" value="${img.url}" data-idx="${idx}" class="img-url-input" placeholder="קישור לתמונה">
+          <input type="file" accept="image/*" data-idx="${idx}" class="img-file-input">
+          <img src="${img.url}" alt="preview">
+          <input type="text" value="${img.caption}" data-idx="${idx}" class="img-caption-input" placeholder="כיתוב תמונה">
+          <button type="button" class="delete-img-btn" data-idx="${idx}" style="background:#e74c3c;color:#fff;padding:6px 10px;border-radius:5px;border:none;margin-right:8px;">מחק</button>
+        `;
+        galleryFields.appendChild(row);
+      });
+
+      // הצג גודל הגלריה (בייטים/קילובייט)
+      const gallerySize = new Blob([JSON.stringify(galleryArr)]).size;
+      const info = gallerySize > 1024*1024
+        ? (gallerySize/1024/1024).toFixed(2) + ' MB'
+        : (gallerySize/1024).toFixed(1) + ' KB';
+      document.getElementById('gallery-size-info').innerText = 'גודל נתוני הגלריה: ' + info + ' (מגבלה: 4MB)';
+
+      // מחיקת תמונה
+      document.querySelectorAll('.delete-img-btn').forEach(btn => {
+        btn.onclick = function() {
+          const idx = parseInt(this.getAttribute('data-idx'));
+          if (confirm('האם למחוק תמונה זו?')) {
+            galleryArr.splice(idx, 1);
+            renderGalleryFields();
+          }
+        };
+      });
+    }
+
+    // Load page data from server
+    function loadPageData(page) {
+      fetch(`/api/page/${page}`)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('main-text-input').value = data.mainText || '';
+          galleryArr = Array.isArray(data.gallery) ? data.gallery.slice() : [];
+          renderGalleryFields();
+          document.getElementById('save-msg').innerText = '';
+        });
+    }
+    document.getElementById('page-select').onchange = function() {
+      loadPageData(this.value);
+    };
+
+    // הוספת תמונה חדשה לגלריה
+    document.getElementById('add-gallery-img-btn').onclick = function() {
+      galleryArr.push({ url: '', caption: '' });
+      renderGalleryFields();
+    };
+
+    // עריכת שדות url/caption בגלריה
+    document.addEventListener('input', function(e) {
+      if (e.target.classList.contains('img-url-input')) {
+        const idx = e.target.getAttribute('data-idx');
+        galleryArr[idx].url = e.target.value;
+        // עדכון התצוגה המקדימה
+        const img = e.target.parentElement.querySelector('img');
+        img.src = e.target.value;
+      }
+      if (e.target.classList.contains('img-caption-input')) {
+        const idx = e.target.getAttribute('data-idx');
+        galleryArr[idx].caption = e.target.value;
+      }
+    });
+
+    // Handle gallery image file change
+    document.addEventListener('change', function(e) {
+      if (e.target.classList.contains('img-file-input')) {
+        const idx = e.target.getAttribute('data-idx');
+        const file = e.target.files[0];
+        if (file) {
+          if (file.size > 5 * 1024 * 1024) { // 5MB
+            alert('התמונה גדולה מדי (מקסימום 5MB).');
+            e.target.value = '';
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = function(ev) {
+            // Update preview and url field
+            galleryArr[idx].url = ev.target.result;
+            renderGalleryFields();
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    });
+
+    // Save changes to server
+    document.getElementById('save-btn').onclick = function() {
+      const page = document.getElementById('page-select').value;
+      // בדיקה: האם יש url ריק או לא תקין בגלריה?
+      for (let i = 0; i < galleryArr.length; i++) {
+        const url = galleryArr[i].url;
+        if (!url || url.trim() === '') {
+          document.getElementById('save-msg').innerHTML = '<span class="error">יש למלא קישור/תמונה עבור כל שדה גלריה</span>';
+          return;
+        }
+        if (url.startsWith('data:') && !url.startsWith('data:image/')) {
+          document.getElementById('save-msg').innerHTML = '<span class="error">קובץ תמונה לא תקין בשורה ' + (i+1) + '</span>';
+          return;
+        }
+      }
+      const data = {
+        mainText: document.getElementById('main-text-input').value,
+        gallery: galleryArr
+      };
+      fetch('/api/save-page', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ page, data: JSON.stringify(data) })
+      })
+      .then(res => res.json())
+      .then(() => {
+        document.getElementById('save-msg').innerHTML = '<span class="success">השינויים נשמרו!</span>';
+      })
+      .catch(() => {
+        document.getElementById('save-msg').innerHTML = '<span class="error">שגיאה בשמירה. נסה שוב.</span>';
+      });
+    };
+
+    // הצגת פניות צור קשר בטבלה + מחיקה
+    function loadContacts() {
+      fetch('/api/contacts')
+        .then(res => res.json())
+        .then(contacts => {
+          if (!contacts.length) {
+            document.getElementById('contacts-list').innerHTML = '<div class="no-contacts">אין פניות חדשות</div>';
+            return;
+          }
+          let html = `<table class="contacts-table">
+            <thead>
+              <tr>
+                <th>שם</th>
+                <th>טלפון</th>
+                <th>אימייל</th>
+                <th>שירות</th>
+                <th>הודעה</th>
+                <th>מחק</th>
+              </tr>
+            </thead>
+            <tbody>
+          `;
+          contacts.forEach((c, idx) => {
+            html += `<tr>
+              <td>${c.name || ''}</td>
+              <td>${c.phone || ''}</td>
+              <td>${c.email || ''}</td>
+              <td>${c.service || ''}</td>
+              <td>${c.message || ''}</td>
+              <td><button class="delete-btn" data-idx="${idx}">מחק</button></td>
+            </tr>`;
+          });
+          html += '</tbody></table>';
+          document.getElementById('contacts-list').innerHTML = html;
+
+          // מחיקת פנייה
+          document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.onclick = function() {
+              if (confirm('האם למחוק פנייה זו?')) {
+                deleteContact(this.getAttribute('data-idx'));
+              }
+            };
+          });
+        });
+    }
+
+    function deleteContact(idx) {
+      fetch('/api/contacts/' + idx, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(() => loadContacts());
+    }
+  </script>
+</body>
+</html>
